@@ -85,7 +85,6 @@ namespace Survivor
 
         static void removeEnemy(GameData gameData, int enemyIndex, Span<int> removedEnemyIndices, ref int removedEnemyCount)
         {
-            Debug.LogFormat("Removing enemy {0}", enemyIndex);
             int count = 0;
             for (int i = 0; i < gameData.AliveEnemyCount; i++)
                 if (gameData.AliveEnemyIndices[i] != enemyIndex)
@@ -156,7 +155,7 @@ namespace Survivor
 
             movePlayer(gameData, balance, dt);
 
-            gameOver = false;//checkGameOver(metaData, gameData, balance);
+            gameOver = checkGameOver(metaData, gameData, balance);
         }
 
         static void moveEnemies(GameData gameData, Balance balance, float dt)
@@ -197,12 +196,19 @@ namespace Survivor
         static void checkEnemyOutOfBounds(GameData gameData, Balance balance, Span<int> removedEnemyIndices, ref int removedEnemyCount)
         {
             float distanceSqr = balance.SpawnRadius * balance.SpawnRadius * 1.1f;
+
+            Span<int> outOfBoundsEnemyIndices = stackalloc int[balance.MaxEnemies];
+            int outOfBoundsEnemyCount = 0;
+
             for (int i = 0; i < gameData.AliveEnemyCount; i++)
             {
                 int enemyIndex = gameData.AliveEnemyIndices[i];
                 if (gameData.EnemyPosition[enemyIndex].sqrMagnitude > distanceSqr)
-                    removeEnemy(gameData, enemyIndex, removedEnemyIndices, ref removedEnemyCount);
+                    outOfBoundsEnemyIndices[outOfBoundsEnemyCount++] = enemyIndex;
             }
+
+            for (int i = 0; i < outOfBoundsEnemyCount; i++)
+                removeEnemy(gameData, outOfBoundsEnemyIndices[i], removedEnemyIndices, ref removedEnemyCount);
         }
 
         static void movePlayer(GameData gameData, Balance balance, float dt)
